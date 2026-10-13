@@ -1,0 +1,364 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1a4ca228-0c22-43bd-9376-fa8583d55cee",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "8GVQGACVVtWTRc4Z",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "195e514a-1dc1-4d4b-9287-fb8963c30f21",
+              "name": "emailBodys",
+              "value": "={{ $json.snippet }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        192,
+        0
+      ],
+      "id": "b461e50a-fc69-47e8-bfed-7dae67948371",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "inputText": "={{ $json.emailBodys }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "Promotional",
+              "description": "Marketing, offers, discounts, sales pitches, newsletters"
+            },
+            {
+              "category": "Support_Service",
+              "description": "Customer inquiries, troubleshooting, complaints, or help requests"
+            }
+          ]
+        },
+        "options": {
+          "systemPromptTemplate": "Please classify the email provided by the user into one of the following categories: {categories}, and use the provided formatting instructions below. Don't explain, and only output the JSON."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        0
+      ],
+      "id": "aa617565-1bc6-4598-9544-4a51f198ec14",
+      "name": "Text Classifier"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini",
+          "cachedResultName": "gpt-5-mini",
+          "cachedResultUrl": ""
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        192
+      ],
+      "id": "6b1f0f0e-32ee-42fb-a01e-cd61d2355220",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Co9dZFO2iepN8B1i",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Email received: {{ $json.emailBodys }}\n\nFrom: {{ $('Gmail Trigger').item.json.From }}",
+        "options": {
+          "systemMessage": "##Overview\nYou are a helpful assistant that answers any inquiries for our e commerce store called NovaMart. You will be drafting email replies for the incoming queries that come through.\n\n##Tools\nvector_store - This tool will be used to help us answer any incoming queries from users\nemail_draft - This tool will be used to draft any emails back to the user. Make sure to use the vector_store before using this tool\n\n##Rules\n- ALWAYS use vector_store before answering and drafting any emails\n- ALWAYS draft an email with an answer\n\n##Extra information\nMy name is Tanya\n- Make sure to include that when drafting the email"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        848,
+        16
+      ],
+      "id": "e1cf3d28-125c-4549-b99e-99aef30a7494",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini",
+          "cachedResultName": "gpt-5-mini",
+          "cachedResultUrl": ""
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        784,
+        288
+      ],
+      "id": "ada9458a-e24a-4af2-a667-cfb7b6205c38",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "Co9dZFO2iepN8B1i",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Work with the data inside the vector database to answer any questions",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        1040,
+        208
+      ],
+      "id": "5dba44d2-f630-462a-835b-bb5757ca063b",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "6QPrRlpWB74XaBrF",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1152,
+        352
+      ],
+      "id": "3852f596-09f6-4643-8a47-90ea72d7023a",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "Co9dZFO2iepN8B1i",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', ``, 'string') }}",
+        "message": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Message', ``, 'string') }}",
+        "options": {
+          "sendTo": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To_Email', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.2,
+      "position": [
+        976,
+        336
+      ],
+      "id": "f925f1d9-9f98-4f3d-85a0-63afb154590a",
+      "name": "Create a draft in Gmail",
+      "webhookId": "9cbe75e5-c17d-4619-8021-c5cc74a3755f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "8GVQGACVVtWTRc4Z",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "8837123780",
+        "text": "=New Inquiry received ACTION: Email Drafted to your email",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1280,
+        -32
+      ],
+      "id": "a9dcd69a-941d-4a67-a103-171d8319c7c9",
+      "name": "Send a text message",
+      "webhookId": "5ba0b506-d509-47ea-8b1c-9b8a7144a6b0",
+      "credentials": {
+        "telegramApi": {
+          "id": "6EU3sDx0acg1T7Zj",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier": {
+      "main": [
+        [],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a draft in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "548df45f-2ef3-4e7c-a13a-8c8a52ce1ee7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "35aac44c80a8c1c6e3a541510d545d212c6c6c478bc490bf84f62b9d546a4115"
+  },
+  "nodeGroups": [],
+  "id": "BMWxIRZjy4R58Hm4",
+  "tags": []
+}
